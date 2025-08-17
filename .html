@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>多功能计算机模拟器</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+        }
+        
+        body {
+            background: #1a1a2e;
+            color: #e6e6e6;
+            line-height: 1.6;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .container {
+            display: grid;
+            grid-template-columns: 250px 1fr;
+            gap: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        /* 面板通用样式 */
+        .panel {
+            background: rgba(40, 40, 70, 0.7);
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(90, 90, 150, 0.3);
+        }
+        
+        /* 控制面板 */
+        .control-panel {
+            height: fit-content;
+        }
+        
+        .panel-title {
+            font-size: 1.2rem;
+            color: #64b5f6;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #3949ab;
+        }
+        
+        .btn-group {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        
+        .btn {
+            background: linear-gradient(45deg, #3949ab, #1e88e5);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 12px 15px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            text-align: left;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .btn:hover {
+            background: linear-gradient(45deg, #283593, #1565c0);
+            transform: translateY(-2px);
+        }
+        
+        .btn i {
+            font-size: 1.2rem;
+        }
+        
+        /* 主功能区域 */
+        .main-panel {
+            display: grid;
+            grid-template-rows: auto 1fr;
+            gap: 20px;
+            height: calc(100vh - 60px);
+        }
+        
+        .system-monitor {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 15px;
+        }
+        
+        .metric-card {
+            background: rgba(30, 30, 60, 0.6);
+            border-radius: 10px;
+            padding: 15px;
+            border: 1px solid #4527a0;
+        }
+        
+        .metric-title {
+            color: #90caf9;
+            font-size: 0.9rem;
+            margin-bottom: 8px;
+        }
+        
+        .metric-value {
+            font-size: 1.4rem;
+            font-weight: bold;
+            color: #e91e63;
+        }
+        
+        .progress-bar {
+            height: 6px;
+            background: rgba(60, 60, 120, 0.5);
+            border-radius: 3px;
+            margin-top: 10px;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #ab47bc, #7e57c2);
+            border-radius: 3px;
+        }
+        
+        /* 终端模拟器 */
+        .terminal {
+            background: rgba(15, 15, 35, 0.9);
+            border-radius: 8px;
+            padding: 15px;
+            height: 100%;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 0.95rem;
+            color: #81d4fa;
+            box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.5);
+        }
+        
+        .terminal-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 12px;
+            color: #80deea;
+        }
+        
+        .terminal-content {
+            white-space: pre-wrap;
+            line-height: 1.4;
+        }
+        
+        .terminal-line {
+            margin-bottom: 5px;
+        }
+        
+        .terminal-input {
+            display: flex;
+            margin-top: 8px;
+        }
+        
+        .prompt {
+            color: #66bb6a;
+            margin-right: 10px;
+        }
+        
+        input[type="text"] {
+            background: transparent;
+            border: none;
+            color: #e0f7fa;
+            border-bottom: 1px solid #29b6f6;
+            outline: none;
+            font-family: 'Courier New', monospace;
+            font-size: 0.95rem;
+            width: 100%;
+        }
+        
+        /* 工具面板 */
+        .tools-panel {
+            grid-column: 1 / -1;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        
+        .file-manager {
+            display: grid;
+            grid-template-rows: auto 1fr;
+        }
+        
+        .file-list {
+            background: rgba(25, 25, 45, 0.7);
+            border-radius: 8px;
+            padding: 10px;
+            margin-top: 10px;
+            height: 100%;
+            overflow-y: auto;
+        }
+        
+        .file-item {
+            padding: 8px 10px;
+            display: flex;
+            justify-content: space-between;
+            border-bottom: 1px solid rgba(55, 55, 100, 0.4);
+        }
+        
+        .file-name {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        /* 响应式适配 */
+        @media (max-width: 768px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+            
+            .tools-panel {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 控制面板 -->
+        <div class="control-panel panel">
+            <h2 class="panel-title">系统控制</h2>
+            <div class="btn-group">
+                <button class="btn" onclick="executeCommand('boot')">
+                    <i>⚡</i>启动系统
+                </button>
+                <button class="btn" onclick="executeCommand('shutdown')">
+                    <i>⭕</i>关闭系统
+                </button>
+                <button class="btn" onclick="executeCommand('diagnostics')">
+                    <i>🔍</i>系统诊断
+                </button>
+                <button class="btn" onclick="executeCommand('file_manager')">
+                    <i>📁</i>文件管理
+                </button>
+                <button class="btn" onclick="executeCommand('process_monitor')">
+                    <i>📊</i>进程监控
+                </button>
+                <button class="btn" onclick="executeCommand('network_check')">
+                    <i>🌐</i>网络检测
+                </button>
+                <button class="btn" onclick="executeCommand('security_scan')">
+                    <i>🛡️</i>安全扫描
+                </button>
+                <button class="btn" onclick="executeCommand('system_update')">
+                    <i>🔄</i>系统更新
+                </button>
+            </div>
+        </div>
+        
+        <!-- 主功能区域 -->
+        <div class="main-panel">
+            <!-- 系统监控 -->
+            <div class="panel system-monitor">
+                <div class="metric-card">
+                    <div class="metric-title">CPU 使用率</div>
+                    <div class="metric-value">28%</div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 28%"></div>
+                    </div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-title">内存使用</div>
+                    <div class="metric-value">5.2/16GB</div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 32%"></div>
+                    </div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-title">存储空间</div>
+                    <div class="metric-value">128/512GB</div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 25%"></div>
+                    </div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-title">网络吞吐</div>
+                    <div class="metric-value">86 Mbps</div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 43%"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 终端模拟器 -->
+            <div class="panel terminal">
+                <div class="terminal-header">
+                    <div>系统终端 (v1.2)</div>
+                    <div id="system-time">2025-08-17 14:30:45</div>
+                </div>
+                <div class="terminal-content" id="terminal-content">
+                    <div class="terminal-line">> System initializing...</div>
+                    <div class="terminal-line">> Core services started successfully</div>
+                    <div class="terminal-line">> Welcome to Multi-Function Computer Simulator</div>
+                    <div class="terminal-line">> Type 'help' for available commands</div>
+                </div>
+                <div class="terminal-input">
+                    <span class="prompt">$</span>
+                    <input type="text" id="command-input" placeholder="输入命令..." 
+                           onkeypress="handleCommand(event)">
+                </div>
+            </div>
+            
+            <!-- 工具面板 -->
+            <div class="tools-panel">
+                <div class="panel file-manager">
+                    <h2 class="panel-title">文件管理器</h2>
+                    <div class="file-list" id="file-list">
+                        <!-- 文件列表将由JS动态生成 -->
+                    </div>
+                </div>
+                
+                <div class="panel">
+                    <h2 class="panel-title">进程监控</h2>
+                    <div id="process-list">
+                        <!-- 进程列表将由JS动态生成 -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 系统状态变量
+        const systemStatus = {
+            cpuUsage: 28,
+            memoryUsage: 32,
+            storageUsage: 25,
+            networkUsage: 43,
+            isRunning: true
+        };
+        
+        // 文件系统
+        const fileSystem = [
+            { name: "system.log", type: "file", size: "128KB", date: "2025-08-15" },
+            { name: "documents", type: "folder", size: "18MB", date: "2025-08-12" },
+            { name: "config.ini", type: "file", size: "2KB", date: "2025-08-17" },
+            { name: "backups", type: "folder", size: "84MB", date: "2025-08-10" },
+            { name: "app.exe", type: "file", size: "24MB", date: "2025-08-14" }
+        ];
+        
+        // 进程列表
+        const processes = [
+            { pid: 1024, name: "system_main", cpu: 5, memory: 120, status: "Running" },
+            { pid: 2048, name: "network_service", cpu: 8, memory: 45, status: "Running" },
+            { pid: 3072, name: "file_manager", cpu: 2, memory: 32, status: "Idle" },
+            { pid: 4096, name: "security_daemon", cpu: 15, memory: 56, status: "Running" },
+            { pid: 5120, name: "user_shell", cpu: 3, memory: 28, status: "Running" }
+        ];
+        
+        // 命令处理
+        function executeCommand(cmd) {
+            const terminal = document.getElementById('terminal-content');
+            const response = document.createElement('div');
+            response.className = 'terminal-line';
+            
+            switch(cmd) {
+                case 'boot':
+                    response.innerHTML = `> System boot sequence initiated...`;
+                    systemStatus.isRunning = true;
+                    updateSystemMetrics();
+                    break;
+                case 'shutdown':
+                    response.innerHTML = `> Shutting down system...`;
+                    systemStatus.isRunning = false;
+                    break;
+                case 'diagnostics':
+                    response.innerHTML = `> Running system diagnostics...<br>>
+                    > CPU: OK<br>> Memory: OK<br>> Storage: OK<br>> Network: OK`;
+                    break;
+                case 'help':
+                    response.innerHTML = `> Available commands:<br>> 
+                    boot, shutdown, diagnostics, files, processes, 
+                    network, security, update, clear`;
+                    break;
+                case 'file_manager':
+                    renderFileSystem();
+                    break;
+                case 'process_monitor':
+                    renderProcesses();
+                    break;
+                default:
+                    response.innerHTML = `> Unknown command: ${cmd}. Type 'help' for available commands`;
+            }
+            
+            terminal.appendChild(response);
+            terminal.scrollTop = terminal.scrollHeight;
+        }
+        
+        // 终端输入处理
+        function handleCommand(e) {
+            if (e.key === 'Enter') {
+                const input = document.getElementById('command-input');
+                const command = input.value.trim();
+                input.value = '';
+                
+                if (command) {
+                    const terminal = document.getElementById('terminal-content');
+                    const cmdLine = document.createElement('div');
+                    cmdLine.className = 'terminal-line';
+                    cmdLine.innerHTML = `> ${command}`;
+                    terminal.appendChild(cmdLine);
+                    
+                    executeCommand(command.toLowerCase());
+                    
+                    if (command === 'clear') {
+                        terminal.innerHTML = '';
+                    }
+                    
+                    terminal.scrollTop = terminal.scrollHeight;
+                }
+            }
+        }
+        
+        // 渲染文件系统
+        function renderFileSystem() {
+            const fileList = document.getElementById('file-list');
+            fileList.innerHTML = '';
+            
+            fileSystem.forEach(file => {
+                const item = document.createElement('div');
+                item.className = 'file-item';
+                
+                item.innerHTML = `
+                    <div class="file-name">
+                        <span>${file.type === 'folder' ? '📁' : '📄'}</span>
+                        ${file.name}
+                    </div>
+                    <div>${file.size}</div>
+                `;
+                
+                fileList.appendChild(item);
+            });
+        }
+        
+        // 渲染进程列表
+        function renderProcesses() {
+            const processList = document.getElementById('process-list');
+            processList.innerHTML = '';
+            
+            const table = document.createElement('table');
+            table.style.width = '100%';
+            table.style.borderCollapse = 'collapse';
+            
+            // 表头
+            const header = table.insertRow();
+            ['PID', '进程名', 'CPU %', '内存 (MB)', '状态'].forEach(text => {
+                const th = document.createElement('th');
+                th.textContent = text;
+                th.style.padding = '8px';
+                th.style.borderBottom = '1px solid #3949ab';
+                th.style.textAlign = 'left';
+                header.appendChild(th);
+            });
+            
+            // 进程行
+            processes.forEach(proc => {
+                const row = table.insertRow();
+                [proc.pid, proc.name, proc.cpu, proc.memory, proc.status].forEach(text => {
+                    const cell = row.insertCell();
+                    cell.textContent = text;
+                    cell.style.padding = '8px';
+                    cell.style.borderBottom = '1px solid rgba(55, 55, 100, 0.4)';
+                });
+            });
+            
+            processList.appendChild(table);
+        }
+        
+        // 更新系统时间
+        function updateSystemTime() {
+            const now = new Date();
+            const dateStr = `${now.getFullYear()}-${(now.getMonth()+1).toString().padStart(2, '0')}-${now.getDate().toString().padStart(2, '0')}`;
+            const timeStr = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}:${now.getSeconds().toString().padStart(2, '0')}`;
+            document.getElementById('system-time').textContent = `${dateStr} ${timeStr}`;
+        }
+        
+        // 更新系统指标
+        function updateSystemMetrics() {
+            if (!systemStatus.isRunning) return;
+            
+            // 模拟指标波动
+            systemStatus.cpuUsage = Math.min(100, Math.max(2, systemStatus.cpuUsage + (Math.random() * 10 - 5)));
+            systemStatus.memoryUsage = Math.min(100, Math.max(15, systemStatus.memoryUsage + (Math.random() * 3 - 1.5)));
+            systemStatus.storageUsage = Math.min(100, Math.max(20, systemStatus.storageUsage + (Math.random() * 0.5 - 0.25)));
+            systemStatus.networkUsage = Math.min(100, Math.max(20, systemStatus.networkUsage + (Math.random() * 8 - 4)));
+            
+            // 更新UI
+            document.querySelectorAll('.metric-value')[0].textContent = 
+                `${systemStatus.cpuUsage.toFixed(1)}%`;
+            document.querySelectorAll('.progress-fill')[0].style.width = 
+                `${systemStatus.cpuUsage}%`;
+            
+            document.querySelectorAll('.metric-value')[1].textContent = 
+                `${(systemStatus.memoryUsage * 0.16).toFixed(1)}/16GB`;
+            document.querySelectorAll('.progress-fill')[1].style.width = 
+                `${systemStatus.memoryUsage}%`;
+            
+            document.querySelectorAll('.metric-value')[2].textContent = 
+                `${(systemStatus.storageUsage * 0.05).toFixed(1)}/512GB`;
+            document.querySelectorAll('.progress-fill')[2].style.width = 
+                `${systemStatus.storageUsage}%`;
+            
+            document.querySelectorAll('.metric-value')[3].textContent = 
+                `${(systemStatus.networkUsage * 2).toFixed(0)} Mbps`;
+            document.querySelectorAll('.progress-fill')[3].style.width = 
+                `${systemStatus.networkUsage}%`;
+        }
+        
+        // 初始化
+        window.onload = function() {
+            updateSystemTime();
+            renderFileSystem();
+            renderProcesses();
+            
+            // 每2秒更新时间
+            setInterval(updateSystemTime, 2000);
+            
+            // 每3秒更新系统指标
+            setInterval(updateSystemMetrics, 3000);
+            
+            // 初始终端提示
+            const initMsg = document.createElement('div');
+            initMsg.className = 'terminal-line';
+            initMsg.innerHTML = "> 系统已准备就绪。输入'help'查看可用命令";
+            document.getElementById('terminal-content').appendChild(initMsg);
+        };
+    </script>
+</body>
+</html>
